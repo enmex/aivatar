@@ -1,0 +1,21 @@
+{
+  "name": "anonymous-ai-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "node --watch --env-file-if-exists=.env src/server.js",
+    "test": "node --test test/*.test.js",
+    "test:integration": "node --env-file-if-exists=.env --test test/integration/*.test.js",
+    "build:client": "npm --prefix client run build"
+  },
+  "dependencies": {
+    "cookie-parser": "1.4.7",
+    "express": "5.1.0",
+    "express-rate-limit": "8.1.0",
+    "helmet": "8.1.0",
+    "pg": "8.16.3"
+  }
+}

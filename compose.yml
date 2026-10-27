@@ -1,0 +1,49 @@
+services:
+  app:
+    build: .
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB:-ai_gateway}
+      PGUSER: ${POSTGRES_USER:-ai_gateway}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-local_dev_change_me}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      AI_BASE_URL: ${AI_BASE_URL:-https://openrouter.ai/api/v1}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-openai/gpt-4o-mini}
+      AI_TIMEOUT_MS: ${AI_TIMEOUT_MS:-60000}
+      AI_MAX_TOKENS: ${AI_MAX_TOKENS:-2048}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 6m
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ai_gateway}
+      POSTGRES_USER: ${POSTGRES_USER:-ai_gateway}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_dev_change_me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
